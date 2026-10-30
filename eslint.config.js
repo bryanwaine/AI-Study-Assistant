@@ -30,4 +30,11 @@ export default [
       ],
     },
   },
+  {
+    // Netlify Functions run on Node, not in the browser.
+    files: ['netlify/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ]
