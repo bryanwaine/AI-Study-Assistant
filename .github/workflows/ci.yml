@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+      # An Anthropic key must never reach the browser bundle. -l prints only
+      # file names, so a leaked key is not echoed into the CI log.
+      - name: Check dist/ for Anthropic keys
+        run: |
+          if grep -rl "sk-ant" dist/; then
+            echo "::error::Found 'sk-ant' in the files above. An Anthropic key is in the build."
+            exit 1
+          fi
