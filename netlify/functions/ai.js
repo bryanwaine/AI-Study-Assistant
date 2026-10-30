@@ -5,13 +5,20 @@ import { getAuth } from "firebase-admin/auth";
 import { ConfigError, readConfig } from "../lib/config.js";
 import { createHandler } from "../lib/handler.js";
 
-// Netlify stops a synchronous function after 30 s by default. One attempt
-// may take up to 25 s (a 40-card deck is a long reply), and the overall
-// deadline cuts off a retry before Netlify does, leaving ~3 s for start-up
-// and token verification, so the client gets our 502 rather than a timeout.
-const ATTEMPT_TIMEOUT_MS = 25_000;
-const DEADLINE_MS = 27_000;
-const MAX_RETRIES = 1;
+// Netlify's synchronous function time limit for this site (30 s by default).
+// Change only this constant once the site's real limit is confirmed.
+const FUNCTION_TIME_LIMIT_SECONDS = 30;
+
+// The model call gets the limit minus ~3 s, which is kept for start-up and
+// token verification, so the client gets our 502 rather than a Netlify
+// timeout. The SDK's own timeout stops waiting for response headers; the
+// abort signal also covers reading the body.
+const MODEL_DEADLINE_MS = (FUNCTION_TIME_LIMIT_SECONDS - 3) * 1000;
+
+// No retries: the SDK waits out the API's retry-after header (up to 60 s)
+// before retrying, which could outlast the function. A 429 is passed on to
+// the client instead.
+const MAX_RETRIES = 0;
 
 // Built on the first request, then reused while this instance stays warm.
 let handler;
@@ -33,14 +40,14 @@ function getHandler() {
 
   const anthropic = new Anthropic({
     apiKey: config.anthropicApiKey,
-    timeout: ATTEMPT_TIMEOUT_MS,
+    timeout: MODEL_DEADLINE_MS,
     maxRetries: MAX_RETRIES,
   });
 
   handler = createHandler({
     verifyToken: (token) => auth.verifyIdToken(token),
     callModel: (params) =>
-      anthropic.messages.create(params, { signal: AbortSignal.timeout(DEADLINE_MS) }),
+      anthropic.messages.create(params, { signal: AbortSignal.timeout(MODEL_DEADLINE_MS) }),
   });
   return handler;
 }
