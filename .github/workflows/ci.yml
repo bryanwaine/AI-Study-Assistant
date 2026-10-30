@@ -20,6 +20,15 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
+
+      # AWS Lambda and netlify dev run functions with require(esm) disabled.
+      # Importing the function under the same flags catches a dependency that
+      # only loads where require(esm) is on (why firebase-admin is pinned).
+      - name: Import the function with Lambda's Node flags
+        run: |
+          node --no-experimental-require-module --no-experimental-detect-module \
+            --input-type=module -e 'await import("./netlify/functions/ai.js")'
+
       - run: npm run build
 
       # An Anthropic key must never reach the browser bundle. -l prints only
