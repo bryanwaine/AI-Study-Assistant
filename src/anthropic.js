@@ -55,21 +55,24 @@ const callAi = async (body) => {
  *
  * @param {string} question - The question to be answered.
  * @param {Array<Object>} history - The conversation history. Each element should have a `role` and a `content` field.
+ *   The callers pass history that already ends with `question`; it is only appended when missing.
  * @returns {Promise<string>} - A promise that resolves to the AI response.
  */
-const generateResponse = async (question, history) => {
+const generateResponse = async (question, history = []) => {
   // The server accepts at most 10 messages, including the question.
-  const MAX_CONTEXT = 9;
-  const recentContext = history?.slice(-MAX_CONTEXT);
+  const MAX_CONTEXT = 10;
+  const last = history.at(-1);
+  const endsWithQuestion = last?.role === "user" && last?.content === question;
+  const conversation = endsWithQuestion
+    ? history
+    : [...history, { role: "user", content: question }];
+
   return callAi({
     task: "chat",
-    messages: [
-      ...recentContext.map((message) => ({
-        role: message.role,
-        content: message.content,
-      })),
-      { role: "user", content: question },
-    ],
+    messages: conversation.slice(-MAX_CONTEXT).map((message) => ({
+      role: message.role,
+      content: message.content,
+    })),
   });
 };
 
