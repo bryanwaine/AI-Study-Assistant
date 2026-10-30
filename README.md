@@ -131,7 +131,7 @@ Open the local URL printed by the Netlify CLI. `npm run dev` on its own starts o
 | `npm run build` | Create a production build in `dist/` |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint across the project |
-| `npm test` | Run the Vitest suite for the `/api/ai` function |
+| `npm test` | Run the Vitest suites for the `/api/ai` function and its client |
 
 ## Project structure
 
