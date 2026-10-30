@@ -24,7 +24,9 @@ const chatRequest = z.strictObject({
     .array(chatMessage)
     .min(1)
     .max(LIMITS.chatMessages)
-    .refine((messages) => messages.at(-1).role === "user", {
+    // Optional chaining: zod still runs this refine after .min(1) fails, so
+    // an empty array must not crash it.
+    .refine((messages) => messages.at(-1)?.role === "user", {
       message: "The last message must come from the user",
     }),
 });
