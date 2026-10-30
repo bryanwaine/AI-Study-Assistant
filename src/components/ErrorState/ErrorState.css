@@ -1,6 +1,6 @@
 .error__container {
     color: #FF7B00;
-    font-size: 0.9rem;
+    font-size: 1rem;
     padding: 1rem 1rem 1rem 1rem;
     margin-bottom: 0 !important;
     width: 100%;
@@ -13,8 +13,10 @@
   
   .error__container p {
     padding: 1.5rem 0;
+    font-size: 0.8rem;
   }
   
   .error__container button {
     width: fit-content;
+    padding: 0.5rem 1rem;
   }

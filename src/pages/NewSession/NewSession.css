@@ -151,20 +151,20 @@ li::marker {
 
 /* Tablet */
 @media screen and (min-width: 768px) {
-  .chat-window {
+  .new-chat-window {
     padding: 10rem 2.5rem 10rem;
   }
 }
 
 /* Laptop */
 @media screen and (min-width: 1024px) {
-  .session__container {
+  .new-session__container {
     align-self: flex-end;
     align-items: center;
     width: 75%;
   }
 
-  .chat-window {
+  .new-chat-window {
     padding: 10rem 2rem 10rem;
   }
 }
@@ -172,13 +172,13 @@ li::marker {
 /* Desktop */
 
 @media screen and (min-width: 1280px) {
-  .session__container {
+  .new-session__container {
     align-self: flex-end;
     align-items: center;
     width: 80%;
   }
 
-  .chat-window {
+  .new-chat-window {
     padding: 10rem 3.5rem 10rem;
   }
 }

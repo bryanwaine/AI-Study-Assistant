@@ -25,7 +25,7 @@ const Menu = (props) => {
   };
   return (
     <div
-      className="menu bg-gray-100/90 md:bg-gray-200/90 dark:bg-neutral-900/90  backdrop-blur-md w-[85%] md:w-[20%]"
+      className="menu bg-gray-100/90 md:bg-gray-200/90 dark:bg-neutral-900/90 border-r border-sky-200 dark:border-sky-800 backdrop-blur-md w-[85%] md:w-[20%]"
       data-menu-open={menuOpen}
     >
       <div className=" w-[95%] bg-white dark:bg-transparent flex border border-sky-900 dark:border-sky-400 rounded-xl !px-2 !mb-4">

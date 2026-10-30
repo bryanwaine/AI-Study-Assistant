@@ -12,7 +12,7 @@ import "./Sidebar.css";
 const Sidebar = ({ sidebarOpen, handleLogout, userName, email }) => {
   return (
     <aside
-      className="sidebar bg-gray-100/90 dark:bg-neutral-900/90  backdrop-blur-md"
+      className="sidebar bg-gray-100/90 dark:bg-neutral-900/90 border-l border-sky-200 dark:border-sky-800 backdrop-blur-md"
       data-sidebar-open={sidebarOpen}
     >
       <h3 className="text-md align-left self-start !ml-4 text-sky-900 dark:text-sky-400 font-light">
