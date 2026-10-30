@@ -186,7 +186,9 @@ describe("POST /api/ai handler", () => {
 
     it("never logs user content", async () => {
       const secret = "my private study notes";
-      const error = Object.assign(new Error("boom"), { status: 500 });
+      // Upstream errors can echo the request back in their message, so the
+      // secret goes in both the body and the error to prove neither is logged.
+      const error = Object.assign(new Error(`Bad request: ${secret}`), { status: 500 });
       const { handler, logger } = setup({ callModel: vi.fn().mockRejectedValue(error) });
       await handler(post({ task: "summary", text: secret }));
 
