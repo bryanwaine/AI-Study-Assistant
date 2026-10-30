@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createHandler } from "./handler.js";
+import { buildModelRequest, createHandler } from "./handler.js";
 import {
   FLASHCARD_SYSTEM_PROMPT,
   NOTES_FLASHCARD_SYSTEM_PROMPT,
@@ -37,6 +37,12 @@ const chatBody = {
     { role: "user", content: "What is osmosis?" },
   ],
 };
+
+describe("buildModelRequest", () => {
+  it("throws on a task it does not know", () => {
+    expect(() => buildModelRequest({ task: "quiz" })).toThrow("Unknown task: quiz");
+  });
+});
 
 describe("POST /api/ai handler", () => {
   it("returns 405 for non-POST requests", async () => {

@@ -41,6 +41,10 @@ export function buildModelRequest(input) {
             : NOTES_FLASHCARD_SYSTEM_PROMPT(input.text, input.count),
         messages: [{ role: "user", content: input.text }],
       };
+    default:
+      // Unreachable while the schema and this switch agree; fails loudly if a
+      // task is added to one but not the other.
+      throw new Error(`Unknown task: ${input.task}`);
   }
 }
 
