@@ -96,6 +96,9 @@ describe("POST /api/ai handler", () => {
       ["too many chat messages", {
         body: { task: "chat", messages: Array(11).fill({ role: "user", content: "q" }) },
       }],
+      ["a chat message over the limit", {
+        body: { task: "chat", messages: [{ role: "user", content: "x".repeat(10001) }] },
+      }],
       ["summary text over the limit", { body: { task: "summary", text: "x".repeat(50001) } }],
       ["an empty summary", { body: { task: "summary", text: "" } }],
       ["a card count below 20", {
@@ -130,6 +133,22 @@ describe("POST /api/ai handler", () => {
         system: SESSION_SYSTEM_PROMPT,
         messages: chatBody.messages,
       });
+    });
+
+    it("accepts a history containing a full-length assistant reply", async () => {
+      const { handler } = setup();
+      const res = await handler(
+        post({
+          task: "chat",
+          messages: [
+            { role: "user", content: "Explain recursion" },
+            { role: "assistant", content: "x".repeat(6000) },
+            { role: "user", content: "Show an example" },
+          ],
+        })
+      );
+
+      expect(res.status).toBe(200);
     });
 
     it("summarises notes", async () => {

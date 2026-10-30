@@ -4,7 +4,9 @@ import { z } from "zod";
 // reject oversized payloads before anything reaches the model.
 export const LIMITS = {
   chatMessages: 10,
-  chatMessageChars: 4000,
+  // Assistant replies are capped at 1024 tokens (~4-5k chars) and come back
+  // as history, so this must sit well above that.
+  chatMessageChars: 10000,
   topicChars: 200,
   textChars: 50000,
   minCards: 20,
