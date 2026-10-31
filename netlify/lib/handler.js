@@ -27,7 +27,9 @@ export function buildModelRequest(input) {
     case "summary":
       return {
         model: MODEL,
-        max_tokens: 1024,
+        // 1024 cut off long summaries on the preview. 1536 is ~18 s at the
+        // measured ~85 tokens/s; 2048 would be ~24 s, too close to 27 s.
+        max_tokens: 1536,
         system: NOTE_SUMMARY_SYSTEM_PROMPT(input.text),
         messages: [{ role: "user", content: input.text }],
       };

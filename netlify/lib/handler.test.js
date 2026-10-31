@@ -43,6 +43,15 @@ const chatBody = {
 };
 
 describe("buildModelRequest", () => {
+  // At ~85 output tokens/s, 1536 tokens is ~18 s, inside the 27 s deadline.
+  it.each([
+    ["chat", 1024, { task: "chat", messages: [{ role: "user", content: "q" }] }],
+    ["summary", 1536, { task: "summary", text: "Notes" }],
+    ["flashcards", 4096, { task: "flashcards", source: "topic", text: "Cells", count: 10 }],
+  ])("caps %s replies at %i tokens", (_label, maxTokens, input) => {
+    expect(buildModelRequest(input).max_tokens).toBe(maxTokens);
+  });
+
   it("throws on a task it does not know", () => {
     expect(() => buildModelRequest({ task: "quiz" })).toThrow("Unknown task: quiz");
   });
