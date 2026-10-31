@@ -20,7 +20,7 @@ const MenuSessionsList = ({
             className={({ isActive }) =>
               `menu__navlink ${
                 isActive
-                  ? "bg-sky-100 dark:bg-black rounded-xl w-full h-full"
+                  ? "bg-gray-900/10 dark:bg-black rounded-xl w-full h-full"
                   : ""
               }`
             }

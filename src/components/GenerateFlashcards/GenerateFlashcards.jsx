@@ -38,7 +38,7 @@ const GenerateFlashcards = ({
                 defaultValue={topic}
                 required
                 disabled
-                className="bg-sky-100 dark:bg-black border border-neutral-200 dark:border-black dark:text-neutral-100"
+                className="bg-gray-900/10 dark:bg-black border border-neutral-200 dark:border-black dark:text-neutral-100"
               />
             </div>
             <div className="generate-section__input__card-count">
@@ -50,7 +50,7 @@ const GenerateFlashcards = ({
                 name="numberOfCards"
                 id="number-of-cards"
                 placeholder="Enter a number between 20 and 40"
-                className={`bg-sky-100 dark:bg-black border border-neutral-200 dark:border-black dark:text-neutral-100 ${inputError && "input-error"}`}
+                className={`bg-gray-900/10 dark:bg-black border border-neutral-200 dark:border-black dark:text-neutral-100 ${inputError && "input-error"}`}
                 value={numberOfCards}
                 onChange={onChange}
                 onInput={onInput}

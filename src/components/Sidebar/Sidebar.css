@@ -52,6 +52,7 @@
 .sidebar__item-value {
   font-family: "Poppins", sans-serif !important;
   text-overflow: ellipsis;
+  font-size: 0.6rem;
 }
 
 /* Media Queries */

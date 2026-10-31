@@ -89,7 +89,7 @@ const Dashboard = () => {
           <h1 className="animate-fade dark:text-gray-100 text-3xl md:text-5xl !mb-6">
             Dashboard
           </h1>
-          <section className="animate-slide dashboard-card w-full rounded-xl bg-sky-100/20 dark:bg-neutral-100/10 border border-sky-200/50 dark:border-none backdrop-blur shadow-md ">
+          <section className="animate-slide dashboard-card w-full rounded-xl bg-gray-900/10/20 dark:bg-neutral-100/10 border border-sky-200/50 dark:border-none backdrop-blur shadow-md ">
             <h2 className="dark:text-gray-100 text-xl md:text-3xl">
               {handleGreeting(firstNameFilter(userName))}
             </h2>
