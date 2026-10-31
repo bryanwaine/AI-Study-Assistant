@@ -246,24 +246,53 @@ describe("POST /api/ai handler", () => {
       expect(logger.info.mock.calls[0][1].durationMs).toBeGreaterThanOrEqual(0);
     });
 
-    it('logs stop_reason "max_tokens" and still returns the reply as it is today', async () => {
+    describe('when the model stops at "max_tokens"', () => {
       // A 40-card deck can approach the 4096-token cap; the API then stops
-      // mid-array. See the PR for the proposed handling of this case.
+      // mid-array, so the flashcard JSON is incomplete.
       const cutOff = '[{"id":1,"question":"What is a cell?","answer":"The basic unit';
-      const { handler, logger } = setup({
-        callModel: vi.fn().mockResolvedValue(
-          modelReply(cutOff, { stopReason: "max_tokens", outputTokens: 4096 })
-        ),
-      });
-      const res = await handler(post({ task: "flashcards", source: "topic", text: "Cells", count: 40 }));
+      const truncated = () =>
+        vi.fn().mockResolvedValue(modelReply(cutOff, { stopReason: "max_tokens", outputTokens: 4096 }));
 
-      expect(logger.info).toHaveBeenCalledWith("AI model call", {
-        durationMs: expect.any(Number),
-        stopReason: "max_tokens",
-        outputTokens: 4096,
+      it.each([
+        ["flashcards from a topic", 502, { task: "flashcards", source: "topic", text: "Cells", count: 40 }],
+        ["flashcards from notes", 502, { task: "flashcards", source: "notes", text: "Cells are...", count: 40 }],
+        ["chat", 200, chatBody],
+        ["summary", 200, { task: "summary", text: "Mitochondria make ATP." }],
+      ])("%s returns %i", async (_label, status, body) => {
+        const { handler, logger } = setup({ callModel: truncated() });
+        const res = await handler(post(body));
+
+        expect(res.status).toBe(status);
+        expect(await res.json()).toEqual(
+          status === 502
+            ? { error: "The AI service is unavailable. Please try again." }
+            : { text: cutOff }
+        );
+        // The same metadata as any other call, and nothing else.
+        expect(logger.info).toHaveBeenCalledTimes(1);
+        expect(logger.info).toHaveBeenCalledWith("AI model call", {
+          durationMs: expect.any(Number),
+          stopReason: "max_tokens",
+          outputTokens: 4096,
+        });
+        expect(logger.error).not.toHaveBeenCalled();
       });
+
+      it("does not send any of the partial flashcard text", async () => {
+        const { handler } = setup({ callModel: truncated() });
+        const res = await handler(post({ task: "flashcards", source: "topic", text: "Cells", count: 40 }));
+
+        expect(await res.text()).not.toContain("basic unit");
+      });
+    });
+
+    it("still returns flashcards that finished normally", async () => {
+      const { handler } = setup({
+        callModel: vi.fn().mockResolvedValue(modelReply("[]", { stopReason: "end_turn" })),
+      });
+      const res = await handler(post({ task: "flashcards", source: "topic", text: "Cells", count: 20 }));
+
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ text: cutOff });
     });
 
     it.each([

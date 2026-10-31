@@ -95,6 +95,11 @@ export function createHandler({ verifyToken, callModel, logger = console }) {
         stopReason: message?.stop_reason,
         outputTokens: message?.usage?.output_tokens,
       });
+      // A flashcard deck cut off at the token limit is always broken JSON, so
+      // it is not sent on. Chat and summary replies stay readable when cut off.
+      if (parsed.data.task === "flashcards" && message?.stop_reason === "max_tokens") {
+        return jsonResponse(502, { error: "The AI service is unavailable. Please try again." });
+      }
       const text = message?.content?.[0]?.text;
       if (typeof text !== "string") {
         throw new Error("Model response contained no text");
