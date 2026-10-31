@@ -8,6 +8,7 @@ vi.mock("./firebase", () => ({ auth: authMock }));
 import {
   AiRequestError,
   generateFlashcards,
+  generateFlashcardsFromNotes,
   generateNoteSummary,
   generateResponse,
 } from "./anthropic";
@@ -50,6 +51,48 @@ describe("src/anthropic.js", () => {
     await generateFlashcards("Cells", "25");
 
     expect(sentBody()).toEqual({ task: "flashcards", source: "topic", text: "Cells", count: 25 });
+  });
+
+  describe("flashcard replies", () => {
+    // What /api/ai returned in the incognito test: a complete 20-card JSON
+    // array that the model wrapped in a markdown code fence.
+    const cards = Array.from({ length: 20 }, (_, i) => ({
+      id: i + 1,
+      question: `What is concept ${i + 1} in cell biology?`,
+      answer: `Concept ${i + 1} explained in a sentence.`,
+    }));
+    const fenced = "```json\n" + JSON.stringify(cards, null, 2) + "\n```";
+
+    it.each([
+      ["a topic", () => generateFlashcards("Cell biology", "20")],
+      ["notes", () => generateFlashcardsFromNotes("Mitochondria make ATP.", "20")],
+    ])("returns text the page can JSON.parse when the reply from %s is fence-wrapped", async (_label, generate) => {
+      fetch.mockResolvedValue(reply(200, { text: fenced }));
+
+      // The same two steps NewFlashcards, Note and NewNote run.
+      const aiResponse = await generate();
+      const parsedResponse = JSON.parse(aiResponse);
+
+      expect(parsedResponse).toEqual(cards);
+    });
+
+    it.each([
+      ["CRLF line endings", "```json\r\n" + JSON.stringify(cards, null, 2).replace(/\n/g, "\r\n") + "\r\n```"],
+      ["no language tag", "```\n" + JSON.stringify(cards) + "\n```"],
+    ])("strips a fence with %s", async (_label, text) => {
+      fetch.mockResolvedValue(reply(200, { text }));
+
+      expect(JSON.parse(await generateFlashcards("Cell biology", "20"))).toEqual(cards);
+    });
+
+    it.each([
+      ["an unfenced reply", JSON.stringify(cards)],
+      ["a reply with text before the fence", "Here are your cards:\n" + fenced],
+    ])("leaves %s unchanged", async (_label, text) => {
+      fetch.mockResolvedValue(reply(200, { text }));
+
+      expect(await generateFlashcards("Cell biology", "20")).toBe(text);
+    });
   });
 
   describe("chat history", () => {

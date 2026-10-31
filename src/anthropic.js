@@ -76,6 +76,15 @@ const generateResponse = async (question, history = []) => {
   });
 };
 
+// The prompts ask for bare JSON, but the model sometimes wraps the array in a
+// ```json fence anyway. Remove one fence around the whole reply, if present;
+// any other text is returned unchanged.
+const CODE_FENCE = /^```(?:json)?[ \t]*\r?\n([\s\S]*?)\r?\n?```$/i;
+const stripCodeFence = (text) => {
+  const match = text.trim().match(CODE_FENCE);
+  return match ? match[1] : text;
+};
+
 /**
  * Generates flashcards based on a specified topic.
  *
@@ -84,7 +93,9 @@ const generateResponse = async (question, history = []) => {
  * @returns {Promise<string>} - A promise that resolves to a string containing the JSON array of generated flashcards.
  */
 const generateFlashcards = async (topic, numberOfCards) =>
-  callAi({ task: "flashcards", source: "topic", text: topic, count: Number(numberOfCards) });
+  stripCodeFence(
+    await callAi({ task: "flashcards", source: "topic", text: topic, count: Number(numberOfCards) })
+  );
 
 /**
  * Generates flashcards based on study notes.
@@ -94,7 +105,9 @@ const generateFlashcards = async (topic, numberOfCards) =>
  * @returns {Promise<string>} - A promise that resolves to a string containing the JSON array of generated flashcards.
  */
 const generateFlashcardsFromNotes = async (notes, numberOfCards) =>
-  callAi({ task: "flashcards", source: "notes", text: notes, count: Number(numberOfCards) });
+  stripCodeFence(
+    await callAi({ task: "flashcards", source: "notes", text: notes, count: Number(numberOfCards) })
+  );
 
 /**
  * Generates a concise summary of study notes.
