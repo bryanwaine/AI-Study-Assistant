@@ -8,14 +8,18 @@ import {
   SESSION_SYSTEM_PROMPT,
 } from "./prompts.js";
 
-const modelReply = (text) => ({ content: [{ type: "text", text }] });
+const modelReply = (text, { stopReason = "end_turn", outputTokens = 42 } = {}) => ({
+  content: [{ type: "text", text }],
+  stop_reason: stopReason,
+  usage: { input_tokens: 100, output_tokens: outputTokens },
+});
 
 // Builds a handler with fake dependencies, so no test touches the network.
 function setup({ verifyToken, callModel } = {}) {
   const deps = {
     verifyToken: verifyToken ?? vi.fn().mockResolvedValue({ uid: "user-1" }),
     callModel: callModel ?? vi.fn().mockResolvedValue(modelReply("AI answer")),
-    logger: { error: vi.fn() },
+    logger: { info: vi.fn(), error: vi.fn() },
   };
   return { handler: createHandler(deps), ...deps };
 }
@@ -220,8 +224,63 @@ describe("POST /api/ai handler", () => {
       expect(logger.error).toHaveBeenCalledWith("AI request failed", {
         name: "Error",
         status: 500,
+        durationMs: expect.any(Number),
       });
       expect(JSON.stringify(logger.error.mock.calls)).not.toContain(secret);
+    });
+  });
+
+  describe("model call metadata logging", () => {
+    it("logs only the duration, stop reason and output tokens", async () => {
+      const { handler, logger } = setup({
+        callModel: vi.fn().mockResolvedValue(modelReply("AI answer", { outputTokens: 321 })),
+      });
+      await handler(post(chatBody));
+
+      expect(logger.info).toHaveBeenCalledTimes(1);
+      expect(logger.info).toHaveBeenCalledWith("AI model call", {
+        durationMs: expect.any(Number),
+        stopReason: "end_turn",
+        outputTokens: 321,
+      });
+      expect(logger.info.mock.calls[0][1].durationMs).toBeGreaterThanOrEqual(0);
+    });
+
+    it('logs stop_reason "max_tokens" and still returns the reply as it is today', async () => {
+      // A 40-card deck can approach the 4096-token cap; the API then stops
+      // mid-array. See the PR for the proposed handling of this case.
+      const cutOff = '[{"id":1,"question":"What is a cell?","answer":"The basic unit';
+      const { handler, logger } = setup({
+        callModel: vi.fn().mockResolvedValue(
+          modelReply(cutOff, { stopReason: "max_tokens", outputTokens: 4096 })
+        ),
+      });
+      const res = await handler(post({ task: "flashcards", source: "topic", text: "Cells", count: 40 }));
+
+      expect(logger.info).toHaveBeenCalledWith("AI model call", {
+        durationMs: expect.any(Number),
+        stopReason: "max_tokens",
+        outputTokens: 4096,
+      });
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ text: cutOff });
+    });
+
+    it.each([
+      ["a successful call", (secret) => vi.fn().mockResolvedValue(modelReply(`Summary of ${secret}`))],
+      ["a failed call", (secret) => vi.fn().mockRejectedValue(
+        Object.assign(new Error(`Upstream echoed ${secret}`), { status: 500 })
+      )],
+    ])("logs nothing from the request or reply on %s", async (_label, makeCallModel) => {
+      const secret = "my-private-study-notes";
+      const token = "token-should-never-be-logged";
+      const { handler, logger } = setup({ callModel: makeCallModel(secret) });
+      await handler(post({ task: "summary", text: secret }, { token }));
+
+      const logged = JSON.stringify([logger.info.mock.calls, logger.error.mock.calls]);
+      expect(logged).not.toContain(secret);
+      expect(logged).not.toContain(token);
+      expect(logged).not.toContain("Summary of");
     });
   });
 });

@@ -56,7 +56,7 @@ export function buildModelRequest(input) {
  *   a valid Firebase ID token and rejects otherwise.
  * @param {(params: Object) => Promise<Object>} deps.callModel - Sends params to
  *   the Anthropic Messages API and resolves with the API's message object.
- * @param {{ error: Function }} [deps.logger] - Defaults to console.
+ * @param {{ info: Function, error: Function }} [deps.logger] - Defaults to console.
  * @returns {(request: Request) => Promise<Response>}
  */
 export function createHandler({ verifyToken, callModel, logger = console }) {
@@ -86,17 +86,29 @@ export function createHandler({ verifyToken, callModel, logger = console }) {
       return jsonResponse(400, { error: "Invalid request" });
     }
 
+    const startedAt = Date.now();
     try {
       const message = await callModel(buildModelRequest(parsed.data));
+      // Metadata about the call only, never the prompt, request or reply.
+      logger.info("AI model call", {
+        durationMs: Date.now() - startedAt,
+        stopReason: message?.stop_reason,
+        outputTokens: message?.usage?.output_tokens,
+      });
       const text = message?.content?.[0]?.text;
       if (typeof text !== "string") {
         throw new Error("Model response contained no text");
       }
       return jsonResponse(200, { text });
     } catch (error) {
-      // Only the error's name and status are logged: never the request body,
-      // the prompt or the model output, which all contain user content.
-      logger.error("AI request failed", { name: error?.name, status: error?.status });
+      // Only the error's name, status and the call's duration are logged: never
+      // the request body, the prompt or the model output, which all contain
+      // user content.
+      logger.error("AI request failed", {
+        name: error?.name,
+        status: error?.status,
+        durationMs: Date.now() - startedAt,
+      });
       if (error?.status === 429) {
         return jsonResponse(429, { error: "Too many requests. Please try again shortly." });
       }
