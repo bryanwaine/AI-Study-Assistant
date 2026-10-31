@@ -13,6 +13,7 @@ import useStaggeredAnimation from "../../hooks/useStaggeredAnimation";
 import useAuth from "../../hooks/useAuth";
 import handleAnthropicError from "../../utils/anthropicErrorHandler";
 import { saveDeck } from "../../utils/flashcardService";
+import logDevError from "../../utils/logDevError";
 
 import "./NewFlashcards.css";
 
@@ -93,6 +94,7 @@ const NewFlashcards = () => {
       setDeck(flashcards);
       setLoadingFlashcards(false);
     } catch (error) {
+      logDevError("Flashcard generation failed", error);
       setLoadingFlashcards(false);
       setError(handleAnthropicError(error).message);
     }
