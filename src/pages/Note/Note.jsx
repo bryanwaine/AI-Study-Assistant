@@ -10,6 +10,7 @@ import useStaggeredAnimation from "../../hooks/useStaggeredAnimation";
 import { saveDeck } from "../../utils/flashcardService";
 import handleAnthropicError from "../../utils/anthropicErrorHandler";
 import { getNote } from "../../utils/noteService";
+import { DEFAULT_CARDS, MAX_CARDS, MIN_CARDS } from "../../../shared/limits";
 import NoteContainerSkeleton from "../../components/Skeleton/NoteContainerSkeleton";
 import ActionButtons from "../../components/ActionButtons/ActionButtons";
 import GenerateFlashcards from "../../components/GenerateFlashcards/GenerateFlashcards";
@@ -30,7 +31,7 @@ const Note = () => {
   const [isCopied, setIsCopied] = useState(false);
 
   const [deck, setDeck] = useState([]);
-  const [numberOfCards, setNumberOfCards] = useState("");
+  const [numberOfCards, setNumberOfCards] = useState(String(DEFAULT_CARDS));
   const [inputError, setInputError] = useState(null);
   ("");
   const [flashcardTopic, setFlashcardTopic] = useState("");
@@ -135,8 +136,8 @@ const Note = () => {
 
   const onGenerateFlashcards = async () => {
     setInputError(null);
-    if (numberOfCards < 20 || numberOfCards > 40) {
-      setInputError("Please enter a number between 20 and 40");
+    if (numberOfCards < MIN_CARDS || numberOfCards > MAX_CARDS) {
+      setInputError(`Please enter a number between ${MIN_CARDS} and ${MAX_CARDS}`);
       return;
     }
     setShowBottomRef(true);

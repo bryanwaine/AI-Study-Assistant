@@ -14,6 +14,7 @@ import useAuth from "../../hooks/useAuth";
 import handleAnthropicError from "../../utils/anthropicErrorHandler";
 import { saveDeck } from "../../utils/flashcardService";
 import logDevError from "../../utils/logDevError";
+import { DEFAULT_CARDS, MAX_CARDS, MIN_CARDS } from "../../../shared/limits";
 
 import "./NewFlashcards.css";
 
@@ -21,7 +22,7 @@ const NewFlashcards = () => {
   const [topic, setTopic] = useState("");
   const [loadingFlashcards, setLoadingFlashcards] = useState(false);
   const [deck, setDeck] = useState([]);
-  const [numberOfCards, setNumberOfCards] = useState("");
+  const [numberOfCards, setNumberOfCards] = useState(String(DEFAULT_CARDS));
   const [error, setError] = useState(null);
   const [inputError, setInputError] = useState(null);
   const [showBottomRef, setShowBottomRef] = useState(false);
@@ -70,8 +71,8 @@ const NewFlashcards = () => {
 
   const onSubmit = async () => {
     setInputError(null);
-    if (numberOfCards < 20 || numberOfCards > 40) {
-      setInputError("Please enter a number between 20 and 40");
+    if (numberOfCards < MIN_CARDS || numberOfCards > MAX_CARDS) {
+      setInputError(`Please enter a number between ${MIN_CARDS} and ${MAX_CARDS}`);
       return;
     }
     setShowBottomRef(true);
@@ -79,7 +80,7 @@ const NewFlashcards = () => {
       const cardTopic = topic;
       const cardCount = numberOfCards;
       setTopic("");
-      setNumberOfCards("");
+      setNumberOfCards(String(DEFAULT_CARDS));
       scrollToBottom();
       setError(null);
       setLoadingFlashcards(true);
@@ -132,7 +133,7 @@ const NewFlashcards = () => {
                 inputMode="numeric"
                 name="numberOfCards"
                 id="number-of-cards"
-                placeholder="Enter a number between 20 and 40"
+                placeholder={`Enter a number between ${MIN_CARDS} and ${MAX_CARDS}`}
                 className={`bg-sky-100 dark:bg-black border border-neutral-200 dark:border-black dark:text-neutral-100 ${inputError && "input-error"}`}
                 value={numberOfCards}
                 onChange={onChange}

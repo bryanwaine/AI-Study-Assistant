@@ -89,7 +89,7 @@ const stripCodeFence = (text) => {
  * Generates flashcards based on a specified topic.
  *
  * @param {string} topic - The topic for which flashcards should be generated.
- * @param {number|string} numberOfCards - The exact number of flashcards to generate (20-40).
+ * @param {number|string} numberOfCards - The exact number of flashcards to generate (MIN_CARDS-MAX_CARDS in shared/limits.js).
  * @returns {Promise<string>} - A promise that resolves to a string containing the JSON array of generated flashcards.
  */
 const generateFlashcards = async (topic, numberOfCards) =>
@@ -101,7 +101,7 @@ const generateFlashcards = async (topic, numberOfCards) =>
  * Generates flashcards based on study notes.
  *
  * @param {string} notes - The study notes from which flashcards should be generated.
- * @param {number|string} numberOfCards - The exact number of flashcards to generate (20-40).
+ * @param {number|string} numberOfCards - The exact number of flashcards to generate (MIN_CARDS-MAX_CARDS in shared/limits.js).
  * @returns {Promise<string>} - A promise that resolves to a string containing the JSON array of generated flashcards.
  */
 const generateFlashcardsFromNotes = async (notes, numberOfCards) =>

@@ -17,6 +17,7 @@ import useAuth from "../../hooks/useAuth";
 import handleAnthropicError from "../../utils/anthropicErrorHandler";
 import { saveNote, updateNote } from "../../utils/noteService";
 import { saveDeck } from "../../utils/flashcardService";
+import { DEFAULT_CARDS, MAX_CARDS, MIN_CARDS } from "../../../shared/limits";
 
 import "./NewNote.css";
 import "../NewFlashcards/NewFlashcards.css";
@@ -37,7 +38,7 @@ const NewNote = () => {
   const [flashcardTopic, setFlashcardTopic] = useState("");
   const [deck, setDeck] = useState([]);
   const [notes, setNotes] = useState("");
-  const [numberOfCards, setNumberOfCards] = useState("");
+  const [numberOfCards, setNumberOfCards] = useState(String(DEFAULT_CARDS));
   const [inputError, setInputError] = useState(null);
   ("");
   const [isCopied, setIsCopied] = useState(false);
@@ -192,8 +193,8 @@ const NewNote = () => {
 
   const onGenerateFlashcards = async () => {
     setInputError(null);
-    if (numberOfCards < 20 || numberOfCards > 40) {
-      setInputError("Please enter a number between 20 and 40");
+    if (numberOfCards < MIN_CARDS || numberOfCards > MAX_CARDS) {
+      setInputError(`Please enter a number between ${MIN_CARDS} and ${MAX_CARDS}`);
       return;
     }
     setShowBottomRef(true);

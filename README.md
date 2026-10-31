@@ -27,7 +27,7 @@ The frontend is built with React and Vite. Firebase provides authentication and 
 - **AI tutor chat** — ask questions across different subjects and continue multi-message conversations.
 - **Persistent sessions** — save chat history in Firestore and resume previous sessions.
 - **Smart notes** — extract text from PDF, DOCX, and TXT files directly in the browser and generate concise summaries.
-- **AI flashcards** — generate decks of 20–40 cards from either a topic or an uploaded note.
+- **AI flashcards** — generate decks of 10–15 cards (10 by default) from either a topic or an uploaded note.
 - **Interactive study experience** — tap to flip cards and swipe in either direction to move through a 3D card stack.
 - **Rich responses** — render GitHub-flavoured Markdown, syntax-highlighted code, typing indicators, and copy-to-clipboard actions.
 - **Authentication** — sign up with email and password, sign in with Google, reset passwords, and protect private routes.

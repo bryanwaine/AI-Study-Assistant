@@ -3,6 +3,7 @@ import TypingIndicator from "../TypingIndicator/TypingIndicator";
 import ErrorState from "../ErrorState/ErrorState";
 import Button from "../Button/Button";
 import CardStack from "../Cardstack/CardStack";
+import { MAX_CARDS, MIN_CARDS } from "../../../shared/limits";
 
 import "./GenerateFlashcards.css";
 
@@ -49,7 +50,7 @@ const GenerateFlashcards = ({
                 inputMode="numeric"
                 name="numberOfCards"
                 id="number-of-cards"
-                placeholder="Enter a number between 20 and 40"
+                placeholder={`Enter a number between ${MIN_CARDS} and ${MAX_CARDS}`}
                 className={`bg-sky-100 dark:bg-black border border-neutral-200 dark:border-black dark:text-neutral-100 ${inputError && "input-error"}`}
                 value={numberOfCards}
                 onChange={onChange}

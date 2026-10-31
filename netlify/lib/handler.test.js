@@ -105,14 +105,17 @@ describe("POST /api/ai handler", () => {
       }],
       ["summary text over the limit", { body: { task: "summary", text: "x".repeat(50001) } }],
       ["an empty summary", { body: { task: "summary", text: "" } }],
-      ["a card count below 20", {
-        body: { task: "flashcards", source: "topic", text: "Cells", count: 19 },
+      ["a card count below 10", {
+        body: { task: "flashcards", source: "topic", text: "Cells", count: 9 },
+      }],
+      ["a card count above 15", {
+        body: { task: "flashcards", source: "topic", text: "Cells", count: 16 },
       }],
       ["a card count sent as a string", {
-        body: { task: "flashcards", source: "topic", text: "Cells", count: "25" },
+        body: { task: "flashcards", source: "topic", text: "Cells", count: "12" },
       }],
       ["a topic over 200 characters", {
-        body: { task: "flashcards", source: "topic", text: "x".repeat(201), count: 20 },
+        body: { task: "flashcards", source: "topic", text: "x".repeat(201), count: 10 },
       }],
     ])("rejects %s", async (_label, { body, rawBody }) => {
       const { handler, callModel } = setup();
@@ -173,11 +176,11 @@ describe("POST /api/ai handler", () => {
       ["notes", NOTES_FLASHCARD_SYSTEM_PROMPT],
     ])("generates flashcards from a %s", async (source, prompt) => {
       const { handler, callModel } = setup();
-      const res = await handler(post({ task: "flashcards", source, text: "Cells", count: 25 }));
+      const res = await handler(post({ task: "flashcards", source, text: "Cells", count: 12 }));
 
       expect(res.status).toBe(200);
       expect(callModel).toHaveBeenCalledWith(
-        expect.objectContaining({ max_tokens: 4096, system: prompt("Cells", 25) })
+        expect.objectContaining({ max_tokens: 4096, system: prompt("Cells", 12) })
       );
     });
   });
@@ -247,15 +250,15 @@ describe("POST /api/ai handler", () => {
     });
 
     describe('when the model stops at "max_tokens"', () => {
-      // A 40-card deck can approach the 4096-token cap; the API then stops
-      // mid-array, so the flashcard JSON is incomplete.
+      // If a deck ever reaches the 4096-token cap, the API stops mid-array
+      // and the flashcard JSON is incomplete.
       const cutOff = '[{"id":1,"question":"What is a cell?","answer":"The basic unit';
       const truncated = () =>
         vi.fn().mockResolvedValue(modelReply(cutOff, { stopReason: "max_tokens", outputTokens: 4096 }));
 
       it.each([
-        ["flashcards from a topic", 502, { task: "flashcards", source: "topic", text: "Cells", count: 40 }],
-        ["flashcards from notes", 502, { task: "flashcards", source: "notes", text: "Cells are...", count: 40 }],
+        ["flashcards from a topic", 502, { task: "flashcards", source: "topic", text: "Cells", count: 15 }],
+        ["flashcards from notes", 502, { task: "flashcards", source: "notes", text: "Cells are...", count: 15 }],
         ["chat", 200, chatBody],
         ["summary", 200, { task: "summary", text: "Mitochondria make ATP." }],
       ])("%s returns %i", async (_label, status, body) => {
@@ -280,17 +283,27 @@ describe("POST /api/ai handler", () => {
 
       it("does not send any of the partial flashcard text", async () => {
         const { handler } = setup({ callModel: truncated() });
-        const res = await handler(post({ task: "flashcards", source: "topic", text: "Cells", count: 40 }));
+        const res = await handler(post({ task: "flashcards", source: "topic", text: "Cells", count: 15 }));
 
         expect(await res.text()).not.toContain("basic unit");
       });
+    });
+
+    it.each([10, 15])("accepts a deck of %i cards, the edge of the allowed range", async (count) => {
+      const { handler, callModel } = setup();
+      const res = await handler(post({ task: "flashcards", source: "topic", text: "Cells", count }));
+
+      expect(res.status).toBe(200);
+      expect(callModel).toHaveBeenCalledWith(
+        expect.objectContaining({ system: FLASHCARD_SYSTEM_PROMPT("Cells", count) })
+      );
     });
 
     it("still returns flashcards that finished normally", async () => {
       const { handler } = setup({
         callModel: vi.fn().mockResolvedValue(modelReply("[]", { stopReason: "end_turn" })),
       });
-      const res = await handler(post({ task: "flashcards", source: "topic", text: "Cells", count: 20 }));
+      const res = await handler(post({ task: "flashcards", source: "topic", text: "Cells", count: 10 }));
 
       expect(res.status).toBe(200);
     });

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { MAX_CARDS, MIN_CARDS } from "../../shared/limits.js";
+
 // Upper bounds on what a client may send. They cap cost per request and
 // reject oversized payloads before anything reaches the model.
 export const LIMITS = {
@@ -9,8 +11,8 @@ export const LIMITS = {
   chatMessageChars: 10000,
   topicChars: 200,
   textChars: 50000,
-  minCards: 20,
-  maxCards: 40,
+  minCards: MIN_CARDS,
+  maxCards: MAX_CARDS,
 };
 
 const chatMessage = z.strictObject({
