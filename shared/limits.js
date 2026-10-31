@@ -8,3 +8,6 @@
 export const MIN_CARDS = 10;
 export const MAX_CARDS = 15;
 export const DEFAULT_CARDS = 10;
+
+// Longest note (in characters) that can be summarised or turned into cards.
+export const NOTE_MAX_CHARS = 50000;

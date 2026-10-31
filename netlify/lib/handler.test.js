@@ -100,10 +100,6 @@ describe("POST /api/ai handler", () => {
       ["too many chat messages", {
         body: { task: "chat", messages: Array(11).fill({ role: "user", content: "q" }) },
       }],
-      ["a chat message over the limit", {
-        body: { task: "chat", messages: [{ role: "user", content: "x".repeat(10001) }] },
-      }],
-      ["summary text over the limit", { body: { task: "summary", text: "x".repeat(50001) } }],
       ["an empty summary", { body: { task: "summary", text: "" } }],
       ["a card count below 10", {
         body: { task: "flashcards", source: "topic", text: "Cells", count: 9 },
@@ -114,15 +110,34 @@ describe("POST /api/ai handler", () => {
       ["a card count sent as a string", {
         body: { task: "flashcards", source: "topic", text: "Cells", count: "12" },
       }],
-      ["a topic over 200 characters", {
-        body: { task: "flashcards", source: "topic", text: "x".repeat(201), count: 10 },
-      }],
     ])("rejects %s", async (_label, { body, rawBody }) => {
       const { handler, callModel } = setup();
       const res = await handler(post(body, { rawBody }));
 
       expect(res.status).toBe(400);
       expect(await res.json()).toEqual({ error: "Invalid request" });
+      expect(callModel).not.toHaveBeenCalled();
+    });
+
+    // "q" is a character none of the fixed messages contain, so finding a run
+    // of it in the response would mean the input was echoed back.
+    it.each([
+      ["notes for a summary", { task: "summary", text: "q".repeat(50001) },
+        "Notes must be at most 50,000 characters."],
+      ["notes for flashcards", { task: "flashcards", source: "notes", text: "q".repeat(50001), count: 10 },
+        "Notes must be at most 50,000 characters."],
+      ["a topic", { task: "flashcards", source: "topic", text: "q".repeat(201), count: 10 },
+        "A topic must be at most 200 characters."],
+      ["a chat message", { task: "chat", messages: [{ role: "user", content: "q".repeat(10001) }] },
+        "Each chat message must be at most 10,000 characters."],
+    ])("names the limit when %s is too long, without echoing it", async (_label, body, message) => {
+      const { handler, callModel } = setup();
+      const res = await handler(post(body));
+      const text = await res.text();
+
+      expect(res.status).toBe(400);
+      expect(JSON.parse(text)).toEqual({ error: message });
+      expect(text).not.toContain("qqq");
       expect(callModel).not.toHaveBeenCalled();
     });
   });

@@ -4,7 +4,7 @@ import {
   NOTE_SUMMARY_SYSTEM_PROMPT,
   SESSION_SYSTEM_PROMPT,
 } from "./prompts.js";
-import { aiRequestSchema } from "./schema.js";
+import { aiRequestSchema, LENGTH_ERROR_MESSAGES } from "./schema.js";
 
 const MODEL = "claude-haiku-4-5";
 
@@ -83,7 +83,12 @@ export function createHandler({ verifyToken, callModel, logger = console }) {
     }
     const parsed = aiRequestSchema.safeParse(body);
     if (!parsed.success) {
-      return jsonResponse(400, { error: "Invalid request" });
+      // Name a length limit when that is what failed. Only messages from the
+      // schema's fixed set are returned, so nothing from the input is echoed.
+      const lengthError = parsed.error.issues
+        .map((issue) => issue.message)
+        .find((message) => LENGTH_ERROR_MESSAGES.has(message));
+      return jsonResponse(400, { error: lengthError ?? "Invalid request" });
     }
 
     const startedAt = Date.now();

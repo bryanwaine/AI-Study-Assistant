@@ -18,7 +18,12 @@ export function handleAnthropicError(error) {
     // Handle known status codes
     switch (statusCode) {
       case 400:
-        message = "Your input is too long or invalid. Please shorten it and try again.";
+        // /api/ai sends a fixed, user-facing message when a length limit is
+        // exceeded; anything else gets the generic text.
+        message =
+          error?.name === "AiRequestError" && error.message !== "Invalid request"
+            ? error.message
+            : "Your input is too long or invalid. Please shorten it and try again.";
         break;
       case 401:
         message = "Your session has expired. Please sign in again.";
