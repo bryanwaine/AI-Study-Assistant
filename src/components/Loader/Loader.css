@@ -7,7 +7,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgb(0, 24, 38);
+    background-color: transparent;
     z-index: 9999999;
     opacity: 0;
     animation: fadeIn 0.3s ease-in-out forwards;

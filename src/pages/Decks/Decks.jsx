@@ -82,8 +82,8 @@ const Decks = () => {
       <Layout userName={userName} />
       <BubbleBackground />
       <div className="decks__container">
-        <h1 className="animate-fade dark:text-gray-100 text-3xl md:text-5xl !mb-6">Your Flashcards</h1>
-        <Button variant="orange" className="animate-fade">
+        <h1 className="dark:text-gray-100 text-3xl md:text-5xl !mb-6">Your Flashcards</h1>
+        <Button variant="orange" className="">
           <Link to="/new-deck" className="btn--link">
             New Flashcards
           </Link>

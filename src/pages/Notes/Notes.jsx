@@ -50,10 +50,10 @@ const Notes = () => {
       <Layout userName={userName} />
       <BubbleBackground />
       <div className="notes__container">
-        <h1 className="animate-fade dark:text-gray-100 text-3xl md:text-5xl !mb-6">
+        <h1 className="dark:text-gray-100 text-3xl md:text-5xl !mb-6">
           Your Notes
         </h1>
-        <Button variant="orange" className="animate-fade">
+        <Button variant="orange" className="">
           <Link to="/new-note" className="btn--link">
             New Note
           </Link>

@@ -25,7 +25,7 @@ const NoteContainer = ({ summary, metaData, aiMessageRef }) => {
           {metaData.title.toUpperCase()}
         </div>
       )}
-      <div className="animate-slide note text-sky-900 dark:text-sky-400">
+      <div className="note dark:text-gray-100">
         {summary?.map(
           (message) =>
             message.role === "assistant" && (

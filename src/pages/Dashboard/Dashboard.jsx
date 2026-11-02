@@ -86,7 +86,7 @@ const Dashboard = () => {
         <BubbleBackground />
         <div className="md:w-[20%]" />
         <div className="dashboard__container">
-          <h1 className="animate-fade dark:text-gray-100 text-3xl md:text-5xl !mb-6">
+          <h1 className="dark:text-gray-100 text-3xl md:text-5xl !mb-6">
             Dashboard
           </h1>
           <section className="animate-slide dashboard-card w-full rounded-xl bg-gray-900/10/20 dark:bg-neutral-100/10 border border-sky-200/50 dark:border-none backdrop-blur shadow-md ">

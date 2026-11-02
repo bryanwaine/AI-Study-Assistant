@@ -3,7 +3,7 @@
   width: 100%;
   height: 9rem;
   padding: 1rem;
-  border-radius: .75rem;
+  border-radius: 0.75rem;
   background: #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   display: flex;
@@ -13,19 +13,13 @@
 }
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    #c6c6c6 25%,
-    #747373 50%,
-    #c6c6c6 75%
-  );
+  background: linear-gradient(90deg, #c6c6c6 25%, #747373 50%, #c6c6c6 75%);
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
   border-radius: 0.75rem;
   width: 100%;
   height: 1rem;
 }
-
 
 .skeleton__title {
   width: 50%;
@@ -70,7 +64,7 @@
   justify-content: space-between !important;
   /* border: 1px solid #e9e9e9; */
   /* background: #f0f0f0; */
-  border-radius: .75rem;
+  border-radius: 0.75rem;
   padding: 1rem;
 }
 
@@ -96,6 +90,30 @@
   align-self: flex-start;
 }
 
+.skeleton-note__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80vw;
+  height: 100%;
+  margin: 1rem 0 0 0;
+  padding: 0;
+}
+
+.skeleton-note {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 1rem 0 1rem;
+  /* color: #035172; */
+  border-top: 1px solid #cccccc;
+  border-bottom: 1px solid #cccccc;
+}
+
 /* Animations */
 @keyframes shimmer {
   0% {
@@ -105,4 +123,3 @@
     background-position: -100% 0;
   }
 }
-

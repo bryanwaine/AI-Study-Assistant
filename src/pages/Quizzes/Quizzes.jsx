@@ -48,7 +48,7 @@ const Quizzes = () => {
       <Layout userName={userName} />
       <BubbleBackground />
       <div className="quizzes__container">
-        <h1 className="animate-fade dark:text-gray-100 text-3xl md:text-5xl !mb-6">
+        <h1 className="dark:text-gray-100 text-3xl md:text-5xl !mb-6">
           Your Quizzes
         </h1>
         <EmptyState page="quizzes" />

@@ -19,9 +19,9 @@ const NoteContainerSkeleton = () => {
     return paragraphs;
   };
   return (
-    <div className="animate-slide note__container">
+    <div className="skeleton-note__container">
       <div className="skeleton skeleton__title note__title" />
-      <div className="note">{renderSkeletonParagraphs()}</div>
+      <div className="skeleton-note">{renderSkeletonParagraphs()}</div>
       <div className="skeleton skeleton__footer action-buttons-wrapper" />
     </div>
   );
