@@ -54,7 +54,7 @@
 
 .session-card__title {
   width: 100%;
-  font-size: 1rem;
+  font-size: 0.875rem;
   align-self: flex-start;
   text-align: left;
   overflow: hidden;
@@ -65,7 +65,7 @@
 }
 
 .session-card__metadata-container {
-  font-size: 0.75rem;
+  font-size: 0.5rem;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -112,6 +112,14 @@
   .sessions__container button {
     width: 50%;
   }
+
+  .session-card__title {
+    font-size: 1rem;
+  }
+
+  .session-card__metadata-container {
+    font-size: 0.75rem;
+  }
 }
 
 /* Desktop */
@@ -125,6 +133,14 @@
 
   .sessions__container button {
     width: 40%;
+  }
+
+  .session-card__title {
+    font-size: 1.125rem;
+  }
+
+  .session-card__metadata-container {
+    font-size: 0.875rem;
   }
   
 }

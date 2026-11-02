@@ -32,12 +32,12 @@ const TextArea = ({ value, onChange, onSubmit, loading }) => {
   return (
     <div className="textarea-wrapper bg-[#f5f5f5] dark:bg-[#001826]">
       <div className="w-[92%] h-auto !pb-[1rem] bg-[#f5f5f5] dark:bg-[#001826] rounded-t-[1.5rem]">
-        <div className="textarea-container bg-sky-100 dark:bg-black">
+        <div className="textarea-container bg-gray-900/10 dark:bg-black">
           <textarea
             enterKeyHint="enter"
             ref={textareaRef}
             rows={2}
-            className="textarea-input bg-sky-100 dark:bg-black text-neutral-900 dark:text-neutral-100"
+            className="textarea-input bg-gray-900/10 dark:bg-black text-neutral-900 dark:text-neutral-100"
             placeholder="Ask anything..."
             id="question"
             name="question"

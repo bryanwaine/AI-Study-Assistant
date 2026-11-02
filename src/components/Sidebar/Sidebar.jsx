@@ -12,26 +12,26 @@ import "./Sidebar.css";
 const Sidebar = ({ sidebarOpen, handleLogout, userName, email }) => {
   return (
     <aside
-      className="sidebar bg-gray-100/90 dark:bg-neutral-900/90  backdrop-blur-md"
+      className="sidebar bg-gray-100/90 dark:bg-neutral-900/90 border-l border-gray-400 dark:border-gray-700 backdrop-blur-md"
       data-sidebar-open={sidebarOpen}
     >
       <h3 className="text-md align-left self-start !ml-4 text-sky-900 dark:text-sky-400 font-light">
         ACCOUNT
       </h3>
       <ul className="sidebar__list">
-        <li className="bg-sky-100 dark:bg-black">
+        <li className="bg-gray-900/10 dark:bg-black">
           <div className="w-full flex-1 flex items-center gap-2 text-sky-900 dark:text-sky-400">
             <PersonOutlineIcon fontSize="small" className="sidebar__icon" />
-            <span className="font-md text-sm"> Name</span>
+            <span className="font-md text-xs"> Name</span>
           </div>
           <p className="sidebar__item-value w-full flex-3 flex justify-end items-center gap-2 text-xs font-light text-neutral-900 dark:text-neutral-100">
             {userName}
           </p>
         </li>
-        <li className="bg-sky-100 dark:bg-black">
+        <li className="bg-gray-900/10 dark:bg-black">
           <div className="w-full flex-1 flex items-center gap-2 text-sky-900 dark:text-sky-400">
             <MailOutlineIcon fontSize="small" className="sidebar__icon" />
-            <span className="font-md text-sm"> Email</span>
+            <span className="font-md text-xs"> Email</span>
           </div>
           <p className="sidebar__item-value w-full flex-3 flex justify-end items-center gap-2 text-xs font-light text-neutral-900 dark:text-neutral-100 ">
             {email}
@@ -42,18 +42,18 @@ const Sidebar = ({ sidebarOpen, handleLogout, userName, email }) => {
         APP
       </h3>
       <ul className="sidebar__list">
-        <li className="bg-sky-100 dark:bg-black">
+        <li className="bg-gray-900/10 dark:bg-black">
           <div className="w-full flex items-center gap-2 text-sky-900 dark:text-sky-400">
             <DarkModeOutlinedIcon fontSize="small" className="text-md" />
-            <span className="font-md text-sm"> Color Scheme</span>
+            <span className="font-md text-xs"> Color Scheme</span>
           </div>
           <ThemeSelector />
         </li>
-        <li className="bg-sky-100 dark:bg-black">
+        <li className="bg-gray-900/10 dark:bg-black">
           <div className="w-full flex items-center gap-2 text-sky-900 dark:text-sky-400">
             <LogoutIcon fontSize="small" className="text-md" />
             <Link onClick={handleLogout} className="">
-              <span className="font-md text-sm">Logout</span>
+              <span className="font-md text-xs">Logout</span>
             </Link>
           </div>
         </li>
