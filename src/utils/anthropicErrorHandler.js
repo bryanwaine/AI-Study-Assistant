@@ -1,7 +1,8 @@
 
 /**
- * Handles errors returned by the Anthropic API, extracting and returning a
- * status code and a human-readable error message.
+ * Handles errors returned by the /api/ai endpoint (and other failures shown
+ * on the same pages), extracting and returning a status code and a
+ * human-readable error message.
  *
  * @param {Object} error - The error object returned by the API, which should
  *   have a `response` property containing the error response.
@@ -17,10 +18,15 @@ export function handleAnthropicError(error) {
     // Handle known status codes
     switch (statusCode) {
       case 400:
-        message = "Invalid request. Please check your prompt or parameters.";
+        // /api/ai sends a fixed, user-facing message when a length limit is
+        // exceeded; anything else gets the generic text.
+        message =
+          error?.name === "AiRequestError" && error.message !== "Invalid request"
+            ? error.message
+            : "Your input is too long or invalid. Please shorten it and try again.";
         break;
       case 401:
-        message = "Unauthorized. Check your API key or authentication headers.";
+        message = "Your session has expired. Please sign in again.";
         break;
       case 403:
         message = "Forbidden. You might not have access to this model or endpoint.";
@@ -32,7 +38,10 @@ export function handleAnthropicError(error) {
         message = "Rate limit exceeded. Slow down and try again later.";
         break;
       case 500:
-        message = "Server error from Anthropic. Please try again in a bit.";
+        message = "Server error. Please try again in a bit.";
+        break;
+      case 502:
+        message = "The AI service is unavailable. Please try again shortly.";
         break;
       case 503:
         message = "Anthropic service is currently unavailable. Try again shortly.";

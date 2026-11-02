@@ -17,6 +17,8 @@ import useAuth from "../../hooks/useAuth";
 import handleAnthropicError from "../../utils/anthropicErrorHandler";
 import { saveNote, updateNote } from "../../utils/noteService";
 import { saveDeck } from "../../utils/flashcardService";
+import createNoteWithSummary, { NOTE_TOO_LONG_MESSAGE } from "../../utils/createNoteWithSummary";
+import { DEFAULT_CARDS, MAX_CARDS, MIN_CARDS, NOTE_MAX_CHARS } from "../../../shared/limits";
 
 import "./NewNote.css";
 import "../NewFlashcards/NewFlashcards.css";
@@ -30,6 +32,7 @@ const NewNote = () => {
   const [noteId, setNoteId] = useState(null);
   const [partialContent, setPartialContent] = useState("");
   const [fileUploadProps, setFileUploadProps] = useState({});
+  const noteTooLong = (fileUploadProps.text?.length ?? 0) > NOTE_MAX_CHARS;
   const [generateFlashcards, setGenerateFlashcards] = useState(false);
   const [generateQuiz, setGenerateQuiz] = useState(false);
   const [showBottomRef, setShowBottomRef] = useState(false);
@@ -37,7 +40,7 @@ const NewNote = () => {
   const [flashcardTopic, setFlashcardTopic] = useState("");
   const [deck, setDeck] = useState([]);
   const [notes, setNotes] = useState("");
-  const [numberOfCards, setNumberOfCards] = useState("");
+  const [numberOfCards, setNumberOfCards] = useState(String(DEFAULT_CARDS));
   const [inputError, setInputError] = useState(null);
   ("");
   const [isCopied, setIsCopied] = useState(false);
@@ -140,33 +143,25 @@ const NewNote = () => {
       console.log("No text or title provided");
       return;
     }
+    setError(null);
+    if (text.length > NOTE_MAX_CHARS) {
+      setError(NOTE_TOO_LONG_MESSAGE);
+      return;
+    }
     try {
-      const userMessage = {
-        id: Date.now(),
-        role: "user",
-        content: text,
-      };
       setLoadingSummary(true);
       setIsResponseGenerated(true);
-      const updatedSummary = [...summary, userMessage];
-      setSummary(updatedSummary);
-      let newNoteId;
-      if (!noteId) {
-        newNoteId = await saveNote(user.uid, updatedSummary, title, fileName);
-        setNoteId(newNoteId);
-      } else {
-        await updateNote(user.uid, noteId || newNoteId, updatedSummary);
-      }
-      const aiResponse = await generateNoteSummary(text);
+      // Show the user's text straight away; it is saved only with the summary.
+      setSummary([...summary, { id: Date.now(), role: "user", content: text }]);
+      const { noteId: savedNoteId, messages: finalSummary } = await createNoteWithSummary(
+        { userId: user.uid, noteId, title, fileName, text, previousMessages: summary },
+        { generateNoteSummary, saveNote, updateNote }
+      );
+      setNoteId(savedNoteId);
+      const aiResponse = finalSummary.at(-1).content;
       const words = aiResponse.split(" ");
       let currentWord = 0;
       setPartialContent("");
-      const aiMessage = {
-        id: Date.now() + 1,
-        role: "assistant",
-        content: aiResponse,
-      };
-      const finalSummary = [...updatedSummary, aiMessage];
 
       const interval = setInterval(() => {
         setPartialContent((prev) => prev + words[currentWord] + " ");
@@ -179,7 +174,6 @@ const NewNote = () => {
           setLoadingSummary(false);
         }
       }, 30);
-      await updateNote(user.uid, noteId || newNoteId, finalSummary);
       setTitle("");
       setStatus(null);
       setDisplayFileName("");
@@ -192,8 +186,8 @@ const NewNote = () => {
 
   const onGenerateFlashcards = async () => {
     setInputError(null);
-    if (numberOfCards < 20 || numberOfCards > 40) {
-      setInputError("Please enter a number between 20 and 40");
+    if (numberOfCards < MIN_CARDS || numberOfCards > MAX_CARDS) {
+      setInputError(`Please enter a number between ${MIN_CARDS} and ${MAX_CARDS}`);
       return;
     }
     setShowBottomRef(true);
@@ -248,6 +242,20 @@ const NewNote = () => {
                 })
               }
             />
+            {fileUploadProps.text && (
+              <p
+                aria-live="polite"
+                className={
+                  noteTooLong
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-neutral-600 dark:text-neutral-300"
+                }
+              >
+                {fileUploadProps.text.length.toLocaleString("en-US")} /{" "}
+                {NOTE_MAX_CHARS.toLocaleString("en-US")} characters
+                {noteTooLong && " (too long to summarise)"}
+              </p>
+            )}
             <div className="new-note__title">
               <label htmlFor="title" className="dark:text-gray-100">Title</label>
               <input
@@ -264,7 +272,7 @@ const NewNote = () => {
             <Button
               variant="orange"
               disabled={
-                !fileUploadProps.text || !isTitleValid || loadingSummary
+                !fileUploadProps.text || !isTitleValid || loadingSummary || noteTooLong
               }
               onClick={() => onSubmit(fileUploadProps)}
             >

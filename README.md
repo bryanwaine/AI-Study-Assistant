@@ -27,7 +27,7 @@ The frontend is built with React and Vite. Firebase provides authentication and 
 - **AI tutor chat** — ask questions across different subjects and continue multi-message conversations.
 - **Persistent sessions** — save chat history in Firestore and resume previous sessions.
 - **Smart notes** — extract text from PDF, DOCX, and TXT files directly in the browser and generate concise summaries.
-- **AI flashcards** — generate decks of 20–40 cards from either a topic or an uploaded note.
+- **AI flashcards** — generate decks of 10–15 cards (10 by default) from either a topic or an uploaded note.
 - **Interactive study experience** — tap to flip cards and swipe in either direction to move through a 3D card stack.
 - **Rich responses** — render GitHub-flavoured Markdown, syntax-highlighted code, typing indicators, and copy-to-clipboard actions.
 - **Authentication** — sign up with email and password, sign in with Google, reset passwords, and protect private routes.
@@ -39,17 +39,17 @@ The frontend is built with React and Vite. Firebase provides authentication and 
 | Area | Tools |
 | --- | --- |
 | Frontend | React 19, React Router 7, Tailwind CSS 4, Material UI, Emotion |
-| Build and quality | Vite 6, ESLint 9, Prettier |
-| AI | Anthropic SDK, Claude Haiku 4.5 |
+| Build and quality | Vite 6, ESLint 9, Prettier, Vitest, GitHub Actions |
+| AI | Anthropic SDK (server-side), Claude Haiku 4.5 |
 | Authentication and data | Firebase Authentication, Cloud Firestore |
 | Document processing | PDF.js, Mammoth, browser FileReader API |
 | Interaction and content | Framer Motion, React Markdown, Remark GFM, Rehype Highlight |
-| Hosting | Netlify |
+| Hosting | Netlify (static site and Functions) |
 
 ## How it works
 
 1. Firebase Authentication establishes the signed-in user's identity.
-2. The application sends chat, note, or flashcard prompts to Claude.
+2. The application sends chat, note, or flashcard requests with the user's Firebase ID token to `/api/ai`, a Netlify Function that verifies the token, validates the input, adds the server-side prompt, and calls Claude.
 3. Responses are rendered as Markdown or converted into structured flashcards.
 4. Sessions, summaries, and decks are saved beneath that user's Firestore document.
 5. The dashboard retrieves the saved resources in parallel for future study sessions.
@@ -78,6 +78,8 @@ Application access should be protected with Firestore Security Rules that restri
 - Node.js and npm
 - A Firebase project with a registered web application
 - An Anthropic API key
+- A Firebase service account key (Project settings → Service accounts → Generate new private key)
+- The Netlify CLI for local development: `npm install -g netlify-cli`
 
 ### Installation
 
@@ -87,11 +89,14 @@ cd AI-Study-Assistaant
 npm install
 ```
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root (it is git-ignored):
 
 ```dotenv
-VITE_ANTHROPIC_API_KEY=your_anthropic_api_key
+# Server-side only: read by the /api/ai function, never sent to the browser.
+ANTHROPIC_API_KEY=your_anthropic_api_key
+FIREBASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"...","client_email":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"}
 
+# Public Firebase web configuration, bundled into the client.
 VITE_FIREBASE_API_KEY=your_firebase_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=your_project_id
@@ -101,6 +106,8 @@ VITE_FIREBASE_APP_ID=your_app_id
 VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ```
 
+`FIREBASE_SERVICE_ACCOUNT` is the downloaded service account JSON on a single line. Never prefix a secret with `VITE_`: Vite inlines every `VITE_` variable into the public bundle.
+
 In Firebase:
 
 1. Enable **Email/Password** and **Google** in Authentication.
@@ -108,13 +115,13 @@ In Firebase:
 3. Add `localhost` and any deployed hostname to Authentication's authorised domains.
 4. Apply owner-only Firestore Security Rules for the user-scoped collections shown above.
 
-Start the development server:
+Start the development server through the Netlify CLI, which runs Vite and serves the `/api/ai` function alongside it:
 
 ```bash
-npm run dev
+netlify dev
 ```
 
-Open the local URL printed by Vite.
+Open the local URL printed by the Netlify CLI. `npm run dev` on its own starts only Vite, so AI requests will fail.
 
 ## Available scripts
 
@@ -124,10 +131,14 @@ Open the local URL printed by Vite.
 | `npm run build` | Create a production build in `dist/` |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint across the project |
+| `npm test` | Run the Vitest suites for the `/api/ai` function and its client |
 
 ## Project structure
 
 ```text
+netlify/
+├── functions/ai.js  # POST /api/ai entry point: Firebase Admin and Anthropic wiring
+└── lib/             # Request handler, schema, prompts, config, and their tests
 src/
 ├── components/    # Reusable UI and interaction components
 ├── context/       # Authentication and toast providers
@@ -135,7 +146,7 @@ src/
 ├── pages/         # Public and protected route screens
 ├── routes/        # Private-route guard
 ├── utils/         # Firestore services, validation, sorting, and errors
-├── anthropic.js   # AI prompts and Anthropic requests
+├── anthropic.js   # Client for the /api/ai function
 ├── firebase.js    # Firebase application configuration
 └── App.jsx        # Route definitions and theme initialisation
 ```
@@ -146,12 +157,14 @@ The live application is deployed on Netlify. For another Netlify deployment:
 
 - Use `npm run build` as the build command.
 - Publish the `dist` directory.
-- Configure every required environment variable in the Netlify project.
+- Configure every required environment variable in the Netlify project: the `VITE_FIREBASE_*` values, plus `ANTHROPIC_API_KEY` and `FIREBASE_SERVICE_ACCOUNT` for Functions.
+- `netlify.toml` pins Node 22 for the build and the function.
+- The function's time budget is set by `FUNCTION_TIME_LIMIT_SECONDS` in `netlify/functions/ai.js`. Keep it in line with the site's synchronous function limit.
 - Keep `public/_redirects` so client-side routes resolve to `index.html`.
 
 ## Security note
 
-> Vite exposes variables prefixed with `VITE_` to client-side code. The current implementation calls Anthropic directly from the browser using `dangerouslyAllowBrowser`, so an Anthropic key included in a public build can be discovered by users. Before deploying your own public instance, route AI requests through a trusted backend or serverless function and keep the API key server-side.
+> The Anthropic API key is only available to the `/api/ai` Netlify Function and is never included in the browser bundle. The function rejects requests without a valid Firebase ID token, validates every request body, and owns the system prompts, so clients cannot supply their own. CI fails if `sk-ant` appears in the production build.
 
 Firebase web configuration values identify the Firebase project but are not a substitute for access control. Enforce authorisation through Authentication and properly scoped Firestore Security Rules.
 
@@ -161,10 +174,8 @@ The core chat, note-summary, and flashcard workflows are implemented. Quiz route
 
 Planned improvements:
 
-- Move Anthropic requests behind a server-side API.
 - Complete quiz generation and persistence.
-- Add automated unit, integration, and end-to-end tests.
-- Add CI checks for linting, tests, and production builds.
+- Extend automated tests to the frontend (integration and end-to-end).
 - Add an example environment file and version-controlled Firestore rules.
 
 ## Author

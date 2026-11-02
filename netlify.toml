@@ -1,0 +1,4 @@
+# Pin Node so the build, CI and the /api/ai function all use the same major
+# version (vitest 5 also needs ^22.12 or newer).
+[build.environment]
+  NODE_VERSION = "22"
